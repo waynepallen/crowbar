@@ -24,6 +24,8 @@ With that said, from a fresh install off the openstack-dev.iso, the next steps a
 3: cd /tftpboot/ubuntu_dvd/extra
 4: ./install admin.openstack.org (or whatever FQDN you want your admin node to have).
 
+Note: if the install did not work, you can try "sudo chef-client" and that may fix issues by repeating the last part of the installation.
+
 The rest of Crowbar will then install.  Unless you change the networking defaults, you can access the Crowbar server:
 * Crowbar UI on http://192.168.124.10:3000.  (crowbar/crowbar)
 * Chef UI on http://192.168.124.10:4040.  (admin/password)
@@ -31,3 +33,4 @@ The rest of Crowbar will then install.  Unless you change the networking default
 * Ganglia on http://192.168.124.10/ganglia.  (nagiosadmin/password)
 
 We are working to make this wiki complete, please feel free to update content.
+
