@@ -14,8 +14,6 @@
 # 
 # Author: RobHirschfeld 
 # 
-require 'chef'
-require 'json'
 
 class BarclampController < ApplicationController
 
