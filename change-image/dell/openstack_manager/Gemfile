@@ -5,7 +5,7 @@ gem "haml"
 gem "sass"
 gem "simple-navigation"
 gem "i18n"
-gem "json", '~> 1.5.2'
+gem "json"
 gem "chef"
 gem "thin"
 
