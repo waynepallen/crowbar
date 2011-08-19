@@ -1,55 +1,40 @@
-%h1= "#{t('.title')} #{@bc_name.titlecase}"
+%h1= t('.title')
 
 %table.data.box
   %thead
     %tr
-      %th= ProposalObject.human_attribute_name :barclamp
-      %th= ProposalObject.human_attribute_name :status
-      %th= ProposalObject.human_attribute_name :name
-      %th= ProposalObject.human_attribute_name :description
+      %th{:style => "width:10%"}= ProposalObject.human_attribute_name :barclamp
+      %th.status{:style => "width:10%"}= ProposalObject.human_attribute_name :status
+      %th{:style => "width:80%"}= ProposalObject.human_attribute_name :description
 
   %tbody
     - @modules.each do |name, barclamp|
-      %tr
-        %td= name
-        %td= (barclamp[:proposals].count > 0 ? barclamp[:proposals].each { |p, v| v[:status] } : "none")
-        %td= barclamp[:proposals].keys
+      %tr{:class => cycle(:odd, :even, :name => "barclamps")}
+        %td
+          - if barclamp[:proposals].length > 0
+            %a.toggle.with_label{:href => "#", :id => "details_#{name.parameterize}_toggle", :rel => "details_#{name.parameterize}"}
+              = name
+          - else
+            %span.toggle.with_label.disabled= name
+        %td
+          - barclamp[:proposals].each do |proposal_name, proposal|
+            .led{:class => proposal[:status], :style => "float:left"}
         %td= barclamp[:description]
-    
--#      %tr{ :class => ["proposal", cycle(:odd, :even)], :id => "#{proposal.barclamp}_#{proposal.name}" }
--#        %td= link_to proposal.barclamp.titlecase, barclamp_show_barclamp_path(proposal.barclamp)
--#        %td.status
--#          .led{:class => proposal.status}
--#        %td= link_to proposal.name, proposal_barclamp_path(:id => proposal.name, :controller => proposal.barclamp)
--#        %td= proposal.description
--#      %tr.details
--#        %td{:colspan => 4}
--#          %table.data
--#            %tbody
--#              - @proposals.sort_by{|n| "#{n.barclamp}/#{n.name}" }.each do |proposal|
--#                %tr
--#                  %td 
+      - if barclamp[:proposals].length > 0
+        %tr{:class => current_cycle("barclamps"), :style => "display:none", :id => "details_#{name.parameterize}"}
+          %td.container{:colspan => "3"}
+            .box
+              %table.data
+                %tbody
+                  - barclamp[:proposals].each do |proposal_name, proposal|
+                    %tr
+                      %td{:style => "width:10%"}= proposal_name
+                      %td.status
+                        .led{:class => proposal[:status]}
+                      %td= proposal[:description]
+        
 
 :javascript
   function update() {
-    $.getJSON('#{status_proposals_barclamp_path}', function(data) {
-
-      // If proposal count has changed, re-render the page
-      var current_proposals = $('.proposal').length;
-      if(data['count'] != current_proposals) {
-        location.reload();
-      }
-
-      // Update proposals
-      $.each(data['proposals'], function(key,val) {
-        var td = $('#'+key+' td');
-        var led = td.children('.led');
-        if(!led.hasClass(val)){
-          led.attr('class', 'led '+val);
-          td.effect("highlight", {color: '#666666'}, 2000);
-        }
-      });
-
-    });
+    return false;
   }
-

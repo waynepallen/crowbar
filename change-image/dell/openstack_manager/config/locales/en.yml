@@ -67,10 +67,10 @@ en:
         status: Status
         barclamp: Barclamp
         data: JSON Data
+        proposal_count: Proposals
       role:
         name: Proposal
         description: Description
-        proposal_count: Proposals
         status: Status
         barclamp: Barclamp
 
@@ -190,6 +190,8 @@ en:
       attributes: Proposal Attributes
       role: Role
       key: Key
+    modules:
+      title: Barclamps and Proposals
   overview:
     index:
       api_clients: API Clients
