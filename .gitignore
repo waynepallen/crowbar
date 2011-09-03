@@ -1,0 +1,11 @@
+*.bundle
+change-image/dell/openstack_manager/db/*.sqlite3
+change-image/dell/openstack_manager/db/*.json
+change-image/dell/openstack_manager/log/*.log
+change-image/dell/openstack_manager/tmp/
+change-image/dell/openstack_manager/*.rvmrc
+change-image/dell/openstack_manager/config/database.yml
+change-image/dell/openstack_manager/public/stylesheets/*.css
+*~
+.beam
+change-image/dell/openstack_manager/vendor/
