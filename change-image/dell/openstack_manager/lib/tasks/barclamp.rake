@@ -17,7 +17,7 @@
 
 namespace :barclamp do
 
-  MODEL_SfOURCE = File.join 'lib', 'barclamp_model'
+  MODEL_SOURCE = File.join 'lib', 'barclamp_model'
   MODEL_SUBSTRING_BASE = '==BC-MODEL=='
   MODEL_SUBSTRING_CAMEL = '==^BC-MODEL=='
   MODEL_TARGET = File.join '..', 'barclamps'
@@ -34,7 +34,7 @@ namespace :barclamp do
     target = File.join args.target, bc
     if bc.nil?
       puts "You must supply a name to create a barclamp"
-    elsif File.exist? File.join target, "version.sh"
+    elsif File.exist? File.join target, "crowbar.yml"
       puts "Aborting! A barclamp already exists in '#{target}'."
     else
       puts "Creating barclamp '#{bc}' into '#{target}' as entity '#{args.entity}'."
@@ -79,53 +79,62 @@ namespace :barclamp do
   desc "Install a barclamp into an active system"
   task :install, [:path] do |t, args|
     path = args.path || "."
-    version = File.join path, 'version.sh'
+    version = File.join path, 'crowbar.yml'
     unless File.exist? version
-      puts "could not install barclamp - failed to find #{version}"
+      puts "ERROR: could not install barclamp - failed to find required #{version} file"
     else
-      bc = nil
-      File.open(version, 'r') do |f|
-        s = f.readline
-        bc ||= s[/BARCLAMP_NAME=(.*)/,1].chomp.strip
+      barclamp = YAML.load_file(version)
+      bc = barclamp["barclamp"]["name"].chomp.strip
+      
+      case barclamp["crowbar"]["layout"].to_i
+      when 1
+        bc_install_layout_1 bc, path, barclamp
+      else
+        puts "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
       end
-      puts "Installing barclamp #{bc} from #{path}"
-      
-      # copy all the files to the target
-      FileUtils.cp_r File.join(path, 'chef'), BARCLAMP_PATH
-      puts "\tcopied over chef parts from #{path} to #{BARCLAMP_PATH}"
-      
-      #upload the cookbooks
-      FileUtils.cd File.join BARCLAMP_PATH, 'cookbooks'
-      knife_cookbook = "knife cookbook upload -o . #{bc}"
-      system knife_cookbook
-      puts "\texecuted: #{knife_cookbook}"
-      
-      #upload the databags
-      FileUtils.cd File.join BARCLAMP_PATH, 'data_bags', 'crowbar'
-      knife_databag  = "knife data bag from file crowbar bc-template-#{bc}.json"
-      system knife_databag
-      puts "\texecuted: #{knife_databag}"
 
-      #upload the roles
-      roles = Dir.entries(File.join(path, 'chef', 'roles')).find_all { |r| r.end_with?(".rb") }
-      FileUtils.cd File.join BARCLAMP_PATH, 'roles'
-      roles.each do |role|
-        knife_role = "knife role from file #{role}"
-        system knife_role
-        puts "\texecuted: #{knife_role}"
-      end
-      
-      #copy the rails parts
-      dirs = Dir.entries(path)
-      FileUtils.cp_r File.join(path, 'app'), File.join(CROWBAR_PATH, 'app') if dirs.include?('app')
-      FileUtils.cp_r File.join(path, 'public'), File.join(CROWBAR_PATH, 'public') if dirs.include? 'public'
-      FileUtils.cp_r File.join(path, 'command_line'), File.join(BIN_PATH) if dirs.include? 'command_line'
-      puts "\tcopied app & command line files"
-      
-      system "service apache2 reload"
-      puts "\trestarted the web server"
       puts "done."
+
     end
   end
 
+
+  def bc_install_layout_1(bc, path, barclamp)
+    puts "Installing barclamp #{bc} from #{path}"
+
+    # copy all the files to the target
+    FileUtils.cp_r File.join(path, 'chef'), BASE_PATH
+    puts "\tcopied over chef parts from #{path} to #{BARCLAMP_PATH}"
+    
+    #upload the cookbooks
+    FileUtils.cd File.join BARCLAMP_PATH, 'cookbooks'
+    knife_cookbook = "knife cookbook upload -o . #{bc}"
+    system knife_cookbook
+    puts "\texecuted: #{knife_cookbook}"
+    
+    #upload the databags
+    FileUtils.cd File.join BARCLAMP_PATH, 'data_bags', 'crowbar'
+    knife_databag  = "knife data bag from file crowbar bc-template-#{bc}.json"
+    system knife_databag
+    puts "\texecuted: #{knife_databag}"
+
+    #upload the roles
+    roles = Dir.entries(File.join(path, 'chef', 'roles')).find_all { |r| r.end_with?(".rb") }
+    FileUtils.cd File.join BARCLAMP_PATH, 'roles'
+    roles.each do |role|
+      knife_role = "knife role from file #{role}"
+      system knife_role
+      puts "\texecuted: #{knife_role}"
+    end
+    
+    #copy the rails parts
+    dirs = Dir.entries(path)
+    FileUtils.cp_r File.join(path, 'app'), File.join(CROWBAR_PATH, 'app') if dirs.include?('app')
+    FileUtils.cp_r File.join(path, 'public'), File.join(CROWBAR_PATH, 'public') if dirs.include? 'public'
+    FileUtils.cp_r File.join(path, 'command_line'), File.join(BIN_PATH) if dirs.include? 'command_line'
+    puts "\tcopied app & command line files"
+    
+    system "service apache2 reload"
+    puts "\trestarted the web server"
+  end
 end

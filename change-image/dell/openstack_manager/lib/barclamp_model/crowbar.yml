@@ -20,7 +20,9 @@ barclamp:
   display: ==^BC-MODEL==
   description: A way to maximize awesomeness for ==^BC-MODEL==
   version: 0
-  crowbar_layout: 1
+
+crowbar:
+  layout: 1
 
 locale_additions:
   en:

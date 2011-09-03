@@ -19,7 +19,10 @@ barclamp:
   name: provisioner
   display: Provisioner
   version: 0
-  crowbar_layout: 1
+
+crowbar:
+  layout: 1
+
 
 locale_additions:
   en:

@@ -20,7 +20,10 @@ barclamp:
   display: Test
   description: Test Barclamp Integrations
   version: 0
-  crowbar_layout: 1
+
+crowbar:
+  layout: 1
+
 
 locale_additions:
   en:
