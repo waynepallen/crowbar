@@ -163,6 +163,12 @@ fi
     cp -rT "$IMG_MNTPT" "$BUILD_DIR"
     sudo umount -d "$IMG_MNTPT"
 
+    # Bring in all the submodules for the extended tree
+    debug "Retrieving submodules"
+    git submodule init
+    git submodule update
+    debug git submodule status
+    
     # Make everything writable again.
     chmod -R u+w "$BUILD_DIR"
 
