@@ -1,0 +1,3 @@
+[submodule "foo"]
+	path = change-image/dell/barclamps/foo
+	url = git://github.com/dellcloudedge/Barclamp-Foo.git
