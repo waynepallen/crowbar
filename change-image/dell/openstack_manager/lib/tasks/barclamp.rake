@@ -98,6 +98,40 @@ namespace :barclamp do
     end
   end
 
+  desc "Install a barclamp into an active system"
+  task :bootstrap, [:path],  do |t, args|
+    path = args.path || "."
+    puts "Boostrapping starting in #{path}."
+    clone = Dir.entries(path).find_all { |e| !e.start_with? '.'}
+    clone.each do |bc|
+      puts "Boostrapping from #{path} + #{bc}"
+      Rake::Task['barclamp:install'].invoke(File.join path, bc)
+    end
+    puts "Boostrapping done."
+  end
+
+  desc "Install a barclamp into an active system"
+  task :install, [:path],  do |t, args|
+    path = args.path || "."
+    version = File.join path, 'crowbar.yml'
+    unless File.exist? version
+      puts "ERROR: could not install barclamp - failed to find required #{version} file"
+    else
+      barclamp = YAML.load_file(version)
+      bc = barclamp["barclamp"]["name"].chomp.strip
+      
+      case barclamp["crowbar"]["layout"].to_i
+      when 1
+        bc_install_layout_1 bc, path, barclamp
+      else
+        puts "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
+      end
+
+      puts "done."
+
+    end
+  end
+
   #merges localizations from config into the matching translation files
   def merge_i18n(barclamp)
     locales = barclamp['locale_additions']
