@@ -98,18 +98,59 @@ namespace :barclamp do
     end
   end
 
+  #merges localizations from config into the matching translation files
+  def merge_i18n(barclamp)
+    locales = barclamp['locale_additions']
+    locales.each do |key, value|
+      #translation file (can be multiple)
+      f = File.join CROWBAR_PATH, 'config', 'locales', "#{key}.yml"
+      if File.exist? f
+        puts "merging tranlation for #{f}"
+        master = YAML.load_file f
+        master = merge_tree(key, value, master)
+        File.open( f, 'w' ) do |out|
+          YAML.dump( master, out )
+        end
+      else
+        puts "WARNING: Did not attempt tranlation merge for #{f} because file was not found."
+      end
+    end
+  end
+  
+  def merge_tree(key, value, target)
+    if target.key? key
+      if target[key].class == Hash
+        value.each do |k, v|
+          #puts "recursing into tree at #{key} for #{k}"
+          target[key] = merge_tree(k, v, target[key])
+        end
+      else
+        #puts "replaced key #{key} value #{value}"
+        target[key] = value      
+      end
+    else
+      #puts "added key #{key} value #{value}"
+      target[key] = value
+    end
+    return target
+  end
 
   def bc_install_layout_1(bc, path, barclamp)
-    debug = true
+    
+    #TODO - add a roll back so there are NOT partial results if a step fails
+    debug = true  #verbose file ops
+    
     puts "Installing barclamp #{bc} from #{path}"
 
-    #copy the rails parts
+    #merge i18n information (least invasive operations first)
+    merge_i18n barclamp
+    
+    #copy the rails parts (required for render BEFORE import into chef)
     dirs = Dir.entries(path)
     FileUtils.cp_r File.join(path, 'app'), CROWBAR_PATH, :verbose => debug if dirs.include? 'app'
     FileUtils.cp_r File.join(path, 'public'), CROWBAR_PATH, :verbose => debug if dirs.include? 'public'
     FileUtils.cp_r File.join(path, 'command_line'), BIN_PATH, :verbose => debug if dirs.include? 'command_line'
     puts "\tcopied app & command line files"
-
 
     # copy all the files to the target
     FileUtils.cp_r File.join(path, 'chef'), BASE_PATH
@@ -138,5 +179,6 @@ namespace :barclamp do
         
     system "service apache2 reload"
     puts "\trestarted the web server"
+
   end
 end
