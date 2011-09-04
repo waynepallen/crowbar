@@ -100,7 +100,16 @@ namespace :barclamp do
 
 
   def bc_install_layout_1(bc, path, barclamp)
+    debug = true
     puts "Installing barclamp #{bc} from #{path}"
+
+    #copy the rails parts
+    dirs = Dir.entries(path)
+    FileUtils.cp_r File.join(path, 'app'), CROWBAR_PATH, :verbose => debug if dirs.include? 'app'
+    FileUtils.cp_r File.join(path, 'public'), CROWBAR_PATH, :verbose => debug if dirs.include? 'public'
+    FileUtils.cp_r File.join(path, 'command_line'), BIN_PATH, :verbose => debug if dirs.include? 'command_line'
+    puts "\tcopied app & command line files"
+
 
     # copy all the files to the target
     FileUtils.cp_r File.join(path, 'chef'), BASE_PATH
@@ -126,14 +135,7 @@ namespace :barclamp do
       system knife_role
       puts "\texecuted: #{knife_role}"
     end
-    
-    #copy the rails parts
-    dirs = Dir.entries(path)
-    FileUtils.cp_r File.join(path, 'app'), File.join(CROWBAR_PATH, 'app') if dirs.include?('app')
-    FileUtils.cp_r File.join(path, 'public'), File.join(CROWBAR_PATH, 'public') if dirs.include? 'public'
-    FileUtils.cp_r File.join(path, 'command_line'), File.join(BIN_PATH) if dirs.include? 'command_line'
-    puts "\tcopied app & command line files"
-    
+        
     system "service apache2 reload"
     puts "\trestarted the web server"
   end
