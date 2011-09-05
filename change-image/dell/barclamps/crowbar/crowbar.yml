@@ -18,6 +18,7 @@
 barclamp:
   name: crowbar
   display: Crowbar
+  description: Crowbar role - Setups the rails app
   version: 0
 
 crowbar:
