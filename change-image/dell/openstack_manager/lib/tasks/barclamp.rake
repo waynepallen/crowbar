@@ -99,19 +99,24 @@ namespace :barclamp do
   end
 
   desc "Install a barclamp into an active system"
-  task :bootstrap, [:path],  do |t, args|
-    path = args.path || "."
+  task :bootstrap, [:path] do |t, args|
+    path = args.path
     puts "Boostrapping starting in #{path}."
     clone = Dir.entries(path).find_all { |e| !e.start_with? '.'}
     clone.each do |bc|
-      puts "Boostrapping from #{path} + #{bc}"
-      Rake::Task['barclamp:install'].invoke(File.join path, bc)
+      bc_path = File.join path, bc
+      if File.exist? File.join bc_path, "crowbar.yml"
+        puts "Boostrapping from #{bc_path}"
+        Rake::Task['barclamp:install'].invoke()
+      else
+        puts "Skipping #{bc_path} because no crowbar.yml file was found"
+      end
     end
     puts "Boostrapping done."
   end
 
   desc "Install a barclamp into an active system"
-  task :install, [:path],  do |t, args|
+  task :install, [:path] do |t, args|
     path = args.path || "."
     version = File.join path, 'crowbar.yml'
     unless File.exist? version
@@ -210,8 +215,12 @@ namespace :barclamp do
       system knife_role
       puts "\texecuted: #{knife_role}"
     end
-        
-    system "service apache2 reload"
+    
+    if File.directory File.join '/etc', 'redhat-release'
+      system "service httpd reload"
+    else
+      system "service apache2 reload"
+    end
     puts "\trestarted the web server"
 
   end
