@@ -107,7 +107,7 @@ namespace :barclamp do
       bc_path = File.join path, bc
       if File.exist? File.join bc_path, "crowbar.yml"
         puts "Boostrapping from #{bc_path}"
-        Rake::Task['barclamp:install'].invoke()
+        Rake::Task['barclamp:install'].invoke(bc_path)
       else
         puts "Skipping #{bc_path} because no crowbar.yml file was found"
       end
