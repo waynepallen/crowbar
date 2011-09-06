@@ -64,16 +64,17 @@ cd /opt/.dell-install
 cp -r chef /opt/dell
 cp rsyslog.d/* /etc/rsyslog.d/
 
-# LEGACY approach: Install barclamps for now 
-cd barclamps
+# Barclamp preparation (put them in the right places)
 mkdir /opt/dell/barclamps
+cd barclamps
 for i in *; do
     [[ -d $i ]] || continue
     cd "$i"
     if [[ -e crowbar.yml ]]; then
-      # UNLESS they are new format, then copy to right location
+      # MODULAR FORMAT copy to right location (installed by rake barclamp:install)
       cp -r * /opt/dell/barclamps
     else 
+      # LEGACY COPY (picked up in install-chef.sh)
       ( cd chef; cp -r * /opt/dell/chef )
       ( cd app; cp -r * /opt/dell/openstack_manager/app )
       ( cd config; cp -r * /opt/dell/openstack_manager/config )
@@ -83,11 +84,6 @@ for i in *; do
     cd ..
 done
 cd ..
-
-# MODULAR approach: Install barclamps using rake (only uses ones that conform to new layout)
-cd /opt/dell/openstack_manager
-rake barclamp:boostrap["/opt/dell/barclamps"]
-cd .. 
 
 # Make sure the bin directory is executable
 chmod +x /opt/dell/bin/*

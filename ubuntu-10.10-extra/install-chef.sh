@@ -173,6 +173,11 @@ knifeloop() {
     done
 }
 
+# MODULAR approach: Install barclamps using rake (only uses ones that conform to new layout)
+cd /opt/dell/openstack_manager
+rake barclamp:bootstrap["/opt/dell/barclamps"]
+
+# LEGACY BARCLAMP INSTALLER (this should go away when all the barclamps are converted)
 cd /opt/dell/chef/cookbooks
 echo "$(date '+%F %T %z'): Uploading cookbooks..." 
 knifeloop cookbook upload -a -o ./ 
