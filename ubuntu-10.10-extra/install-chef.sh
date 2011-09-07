@@ -128,7 +128,7 @@ cp /root/.ssh/authorized_keys \
     /opt/dell/barclamps/provisioner/chef/cookbooks/ubuntu-install/files/default/authorized_keys
 
 # generate the machine install username and password
-REALM=$(/tftpboot/ubuntu_dvd/updates/parse_node_data /opt/dell/barclamps/provisioner/chef/data_bags/crowbar/bc-template-crowbar.json -a attributes.crowbar.realm)
+REALM=$(/tftpboot/ubuntu_dvd/updates/parse_node_data /opt/dell/chef/data_bags/crowbar/bc-template-crowbar.json -a attributes.crowbar.realm)
 REALM=${REALM##*=}
 if [[ ! -e /etc/crowbar.install.key ]]; then
     dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null | \

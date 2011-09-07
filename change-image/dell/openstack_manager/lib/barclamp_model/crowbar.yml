@@ -26,10 +26,12 @@ crowbar:
 
 nav:
   add:
-    ==BC-MODEL==:
+    ==BC-MODEL==: barclamp_index_barclamp_path
 
 locale_additions:
   en:
+    nav:
+      ==BC-MODEL==: ==^BC-MODEL==
     barclamp:
       ==BC-MODEL==_edit_attributes: 
         attributes: Attributes

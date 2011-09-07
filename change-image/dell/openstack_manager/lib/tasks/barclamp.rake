@@ -173,12 +173,24 @@ namespace :barclamp do
   
   def merge_nav(barclamp)
     unless barclamp['nav'].nil?
+      # get raw file
+      nav_file = File.join 'config', 'navigation.rb'  #assume that we're in the app dir
+      nav = []
+      File.open(nav_file, 'r') do |f|
+        nav << f.eachline { |line| nav.push line }
+      end
       add = barclamp['nav']['add']
       unless add.nil?
-        add.each do |key, value|
-          #navigation.items do |primary|
-          #primary.item :dashboard, t('nav.dashboard'), root_path
-        emd
+        File.open( nav_file, 'w') do |out|
+          nav.each do |line|
+            out.puts line
+            if line.starts_with? "primary.item :barclamps"
+              add.each do |key, value|
+                out.puts "secondary.item :#{key}, t('nav.#{key}'), #{value}" unless value.nil?
+              end
+            end
+          end
+        end
       end
     end
   end
@@ -254,6 +266,9 @@ namespace :barclamp do
     File.open( filelist, 'w' ) do |out|
       YAML.dump( {"files" => files }, out )
     end
+    
+    merge_nav barclamp
+    
     puts "Barclamp #{bc} (format v1) installed.  Review #{filelist} for files created."
 
   end
