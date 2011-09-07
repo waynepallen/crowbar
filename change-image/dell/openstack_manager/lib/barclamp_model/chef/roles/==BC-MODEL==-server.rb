@@ -1,5 +1,5 @@
 name "==BC-MODEL==-server"
-description "==^BC-MODEL== Servier Role"
+description "==^BC-MODEL== Server Role"
 run_list(
          "recipe[==BC-MODEL==::api]",
          "recipe[==BC-MODEL==::monitor]"

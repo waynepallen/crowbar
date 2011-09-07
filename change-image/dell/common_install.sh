@@ -69,19 +69,21 @@ mkdir /opt/dell/barclamps
 cd barclamps
 for i in *; do
     [[ -d $i ]] || continue
-    cd "$i"
-    if [[ -e crowbar.yml ]]; then
+    if [ -e $i/crowbar.yml ]; then
       # MODULAR FORMAT copy to right location (installed by rake barclamp:install)
-      cp -r * /opt/dell/barclamps
+      cp -r $i /opt/dell/barclamps
+      echo "copy new format $i"
     else 
+      echo "copy LEGACY format $i"
+      cd "$i"
       # LEGACY COPY (picked up in install-chef.sh)
       ( cd chef; cp -r * /opt/dell/chef )
       ( cd app; cp -r * /opt/dell/openstack_manager/app )
       ( cd config; cp -r * /opt/dell/openstack_manager/config )
       ( cd command_line; cp * /opt/dell/bin )
       ( cd public ; cp -r * /opt/dell/openstack_manager/public )
+      cd ..
     fi    
-    cd ..
 done
 cd ..
 

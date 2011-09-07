@@ -22,7 +22,11 @@ barclamp:
   version: 0
 
 crowbar:
-  layout: 1
+  layout: 0
+
+nav:
+  add:
+    ==BC-MODEL==:
 
 locale_additions:
   en:

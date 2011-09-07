@@ -93,7 +93,7 @@ ip addr add 192.168.124.10/24 dev eth0
 
 # Replace the domainname in the default template
 DOMAINNAME=$(dnsdomainname)
-sed -i "s/pod.cloud.openstack.org/$DOMAINNAME/g" /opt/dell/chef/data_bags/crowbar/bc-template-dns.json
+sed -i "s/pod.cloud.openstack.org/$DOMAINNAME/g" /opt/dell/barclamps/dns/chef/data_bags/crowbar/bc-template-dns.json
 
 # once our hostname is correct, bounce rsyslog to let it know.
 log_to svc service rsyslog restart
@@ -125,10 +125,10 @@ fi
 cat /root/.ssh/id_rsa.pub >>/root/.ssh/authorized_keys
 # and trick Chef into pushing it out to everyone.
 cp /root/.ssh/authorized_keys \
-    /opt/dell/chef/cookbooks/ubuntu-install/files/default/authorized_keys
+    /opt/dell/barclamps/provisioner/chef/cookbooks/ubuntu-install/files/default/authorized_keys
 
 # generate the machine install username and password
-REALM=$(/tftpboot/ubuntu_dvd/updates/parse_node_data /opt/dell/chef/data_bags/crowbar/bc-template-crowbar.json -a attributes.crowbar.realm)
+REALM=$(/tftpboot/ubuntu_dvd/updates/parse_node_data /opt/dell/barclamps/provisioner/chef/data_bags/crowbar/bc-template-crowbar.json -a attributes.crowbar.realm)
 REALM=${REALM##*=}
 if [[ ! -e /etc/crowbar.install.key ]]; then
     dd if=/dev/urandom bs=65536 count=1 2>/dev/null |sha512sum - 2>/dev/null | \
@@ -160,6 +160,7 @@ chef_or_die "Initial chef run failed"
 echo "$(date '+%F %T %z'): Validating data bags..."
 log_to validation validate_bags.rb /opt/dell/chef/data_bags || \
     die -5 "Crowbar configuration has errors.  Please fix and rerun install."
+# TODO - extra validation needed in the rake install
 
 # Run knife in a loop until it doesn't segfault.
 knifeloop() {

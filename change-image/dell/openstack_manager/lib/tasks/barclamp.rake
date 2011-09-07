@@ -28,6 +28,7 @@ namespace :barclamp do
   
   desc "Create a new barclamp"
   task :create, :name, :entity, :target, :needs=>[] do |t, args|
+    files = []
     puts args.inspect
     args.with_defaults(:entity => 'Dell', :target => MODEL_TARGET)
     bc = args.name
@@ -41,32 +42,46 @@ namespace :barclamp do
       FileUtils.mkdir target
       clone = Dir.entries(MODEL_SOURCE).find_all { |e| !e.start_with? '.'}
       clone.each do |item|
-        bc_cloner(item, bc, args.entity, MODEL_SOURCE, target)
+        files += bc_cloner(item, bc, args.entity, MODEL_SOURCE, target, true)
       end
     end
+    filelist = File.join target, 'filelist.yml'
+    File.open( filelist, 'w' ) do |out|
+      YAML.dump( {"files" => files }, out )
+    end
+    puts "Barclamp #{bc} created in #{target}.  Review #{filelist} for files created."
   end
   
-  def bc_cloner(item, bc, entity, source, target)
-    new_item = bc_replacer(item, bc, entity)
+  def bc_cloner(item, bc, entity, source, target, replace)
+    files = []
+    puts "cloner #{item}, #{bc}, #{entity}, #{source}, #{target}, #{replace}."
+    new_item = (replace ? bc_replacer(item, bc, entity) : item)
     new_file = File.join target, new_item
     new_source = File.join(source, item)
     if File.directory? new_source
-      #puts "\tcreating directory #{new_file}."
-      FileUtils.mkdir new_file, :verbose => true
+      puts "\tcreating directory #{new_file}."
+      FileUtils.mkdir new_file
       clone = Dir.entries(new_source).find_all { |e| !e.start_with? '.'}
       clone.each do |recurse|
-        bc_cloner(recurse, bc, entity, new_source, new_file)
+        files += bc_cloner(recurse, bc, entity, new_source, new_file, replace)
       end
     else
       #need to inject into the file
-      puts "\t\tcreating file #{new_file}."
-      t = File.open(new_file, 'w')
-      File.open(new_source, 'r') do |f|
-        s = f.read
-        t.write(bc_replacer(s, bc, entity))
+      unless replace
+        puts "\t\tcopying file #{new_file}."
+        FileUtils.cp new_source, new_file
+      else
+        puts "\t\tcreating file #{new_file}."
+        t = File.open(new_file, 'w')
+        File.open(new_source, 'r') do |f|
+          s = f.read
+          t.write(bc_replacer(s, bc, entity))
+        end
+        t.close
+        files << new_file
       end
-      t.close
     end
+    return files
   end
   
   def bc_replacer(item, bc, entity)
@@ -87,8 +102,8 @@ namespace :barclamp do
       bc = barclamp["barclamp"]["name"].chomp.strip
       
       case barclamp["crowbar"]["layout"].to_i
-      when 1
-        bc_install_layout_1 bc, path, barclamp
+      when 0
+        bc_install_layout_0 bc, path, barclamp
       else
         puts "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
       end
@@ -126,8 +141,8 @@ namespace :barclamp do
       bc = barclamp["barclamp"]["name"].chomp.strip
       
       case barclamp["crowbar"]["layout"].to_i
-      when 1
-        bc_install_layout_1 bc, path, barclamp
+      when 0
+        bc_install_layout_0 bc, path, barclamp
       else
         puts "ERROR: could not install barclamp #{bc} because #{barclamp["barclamp"]["crowbar_layout"]} is unknown layout."
       end
@@ -156,6 +171,18 @@ namespace :barclamp do
     end
   end
   
+  def merge_nav(barclamp)
+    unless barclamp['nav'].nil?
+      add = barclamp['nav']['add']
+      unless add.nil?
+        add.each do |key, value|
+          #navigation.items do |primary|
+          #primary.item :dashboard, t('nav.dashboard'), root_path
+        emd
+      end
+    end
+  end
+  
   def merge_tree(key, value, target)
     if target.key? key
       if target[key].class == Hash
@@ -174,10 +201,10 @@ namespace :barclamp do
     return target
   end
 
-  def bc_install_layout_1(bc, path, barclamp)
+  def bc_install_layout_0(bc, path, barclamp)
     
     #TODO - add a roll back so there are NOT partial results if a step fails
-    debug = true  #verbose file ops
+    files = []
     
     puts "Installing barclamp #{bc} from #{path}"
 
@@ -186,13 +213,13 @@ namespace :barclamp do
     
     #copy the rails parts (required for render BEFORE import into chef)
     dirs = Dir.entries(path)
-    FileUtils.cp_r File.join(path, 'app'), CROWBAR_PATH, :verbose => debug if dirs.include? 'app'
-    FileUtils.cp_r File.join(path, 'public'), CROWBAR_PATH, :verbose => debug if dirs.include? 'public'
-    FileUtils.cp_r File.join(path, 'command_line'), BIN_PATH, :verbose => debug if dirs.include? 'command_line'
+    files += bc_cloner('app', bc, nil, path, CROWBAR_PATH, false) if dirs.include? 'app'
+    files += bc_cloner('public', bc, nil, path, CROWBAR_PATH, false) if dirs.include? 'public'
+    files += bc_cloner('command_line', bc, nil, path, BIN_PATH, false) if dirs.include? 'command_line'
     puts "\tcopied app & command line files"
 
     # copy all the files to the target
-    FileUtils.cp_r File.join(path, 'chef'), BASE_PATH
+    files += bc_cloner('chef', bc, nil, path, BASE_PATH, false)
     puts "\tcopied over chef parts from #{path} to #{BARCLAMP_PATH}"
     
     #upload the cookbooks
@@ -216,12 +243,18 @@ namespace :barclamp do
       puts "\texecuted: #{knife_role}"
     end
     
-    if File.directory File.join '/etc', 'redhat-release'
+    if File.directory?(File.join('/etc', 'redhat-release'))
       system "service httpd reload"
     else
       system "service apache2 reload"
     end
     puts "\trestarted the web server"
+
+    filelist = File.join path, 'filelist.yml'
+    File.open( filelist, 'w' ) do |out|
+      YAML.dump( {"files" => files }, out )
+    end
+    puts "Barclamp #{bc} (format v1) installed.  Review #{filelist} for files created."
 
   end
 end
