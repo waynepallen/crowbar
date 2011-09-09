@@ -175,8 +175,25 @@ knifeloop() {
 }
 
 # MODULAR approach: Install barclamps using rake (only uses ones that conform to new layout)
-cd /opt/dell/openstack_manager
-rake barclamp:bootstrap["/opt/dell/barclamps"]
+cd /opt/dell/barclamps
+for i in *; do
+    [[ -d $i ]] || continue
+    if [ -e $i/crowbar.yml ]; then
+      # MODULAR FORMAT copy to right location (installed by rake barclamp:install)
+      ruby /opt/dell/openstack_manager/lib/tasks/barclamps.rb
+    else 
+      echo "copy LEGACY format $i"
+      cd "$i"
+      # LEGACY COPY (picked up in install-chef.sh)
+      ( cd chef; cp -r * /opt/dell/chef )
+      ( cd app; cp -r * /opt/dell/openstack_manager/app )
+      ( cd config; cp -r * /opt/dell/openstack_manager/config )
+      ( cd command_line; cp * /opt/dell/bin )
+      ( cd public ; cp -r * /opt/dell/openstack_manager/public )
+      cd ..
+    fi    
+done
+
 
 # LEGACY BARCLAMP INSTALLER (this should go away when all the barclamps are converted)
 cd /opt/dell/chef/cookbooks
