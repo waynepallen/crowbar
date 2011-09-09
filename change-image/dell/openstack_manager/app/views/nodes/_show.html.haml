@@ -35,10 +35,7 @@
     = t('.links')
   %dd
     = link_to t('.bmc'), "https://#{@node.get_network_by_type("bmc")["address"]}", :target => '_blank'
-    - unless @node["crowbar"]["links"].nil?
-      - @node["crowbar"]["links"].each do |name,link|
-        , 
-        = link_to name, link, :target => '_blank'
+    = @node["crowbar"]["links"].map{ |name, link| link_to(name, link, :target => '_blank') }.join(', ') unless @node["crowbar"]["links"].nil?
   
 %dl.barclamps
   = dl_item((NodeObject.human_attribute_name :barclamps), barclamps_list(@node.roles), {:escape_html=>false})
