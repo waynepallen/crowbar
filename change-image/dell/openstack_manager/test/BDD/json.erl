@@ -15,7 +15,7 @@
 % Author: RobHirschfeld 
 % 
 -module(json).
--export([parse/1, value/2]).
+-export([parse/1, value/2, output/1]).
 -import(bdd_utils).
 
 -record(json, {list=[], raw=[]}).
@@ -71,3 +71,22 @@ json(JSON, Key) ->
 % entry point
 parse(RawJSON) ->
   json(#json{raw=RawJSON}, []).
+
+% create json from list
+output(List) ->
+  "{" ++ output_inner(List) ++ "}".
+  
+atomize({K, V}) ->
+  io:format("DEBUG ~p ~p~n", [K, V]),
+  Value = case V of
+    [_] -> V;
+     _ -> output(V)
+  end,
+  "\"" ++ K ++ "\":\"" ++ Value ++ "\"".
+
+output_inner([Head | []]) ->
+  io:format("end"),
+  atomize(Head);
+output_inner([Head | Tail]) ->
+  atomize(Head) ++ ", " ++ output_inner(Tail).
+
