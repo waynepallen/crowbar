@@ -46,6 +46,18 @@
 [submodule "barclamps/glance"]
 	path = barclamps/glance
 	url = https://github.com/dellcloudedge/barclamp-glance
+[submodule "barclamps/mysql"]
+	path = barclamps/mysql
+	url = http://github.com/dellcloudedge/barclamp-mysql
+[submodule "barclamps/keystone"]
+	path = barclamps/keystone
+	url = http://github.com/dellcloudedge/barclamp-keystone
+[submodule "barclamps/kong"]
+	path = barclamps/kong
+	url = http://github.com/jcannava/barclamp-kong.git
+[submodule "barclamps/nova_dashboard"]
+	path = barclamps/nova_dashboard
+	url = http://github.com/dellcloudedge/barclamp-nova_dashboard
 [submodule "barclamps/raid"]
 	path = barclamps/raid
 	url = gitolite@10.9.244.31:barclamp-raid
@@ -58,4 +70,3 @@
 [submodule "barclamps/overview"]
 	path = barclamps/overview
 	url = gitolite@10.9.244.31:barclamp-overview
-
