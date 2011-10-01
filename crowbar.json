@@ -11,7 +11,6 @@
         "bios", 
         "network", 
         "provisioner",
-	"redhat_install",
         "ubuntu_install",  
         "ntp", 
         "dns", 
@@ -27,7 +26,6 @@
       ],
       "run_order": {
         "deployer": 10,
-	"redhat_install": 14,
 	"ubuntu_install": 14,
         "ipmi": 17,
         "bios": 18,
@@ -60,6 +58,19 @@
       "users": {
         "machine-install": { "password": "machine_password" },
         "crowbar": { "password": "crowbar" }
+      },
+      "bios-settings": {
+          "Virtualization" : "Virtualization",
+	  "Storage" : "Storage"
+      },
+      "raid-settings": {
+          "JBOD Only": "JBODOnly",
+          "Single RAID 10": "SingleRaid10"
+      },
+      "node-usage": {
+          "Nova": "Nova",
+	  "Swift": "Swift",
+	  "Glance": "Glance"
       }
     },
     "rails": {
