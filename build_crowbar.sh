@@ -31,6 +31,10 @@
 # this build script can be smarter about what packages it should pull in
 # whenever you invoke it to build an iso.
 
+# We always use the C language and locale
+export LANG="C"
+export LC_ALL="C"
+
 
 GEM_RE='([^0-9].*)-([0-9].*)'
 [[ $DEBUG ]] && {
@@ -391,8 +395,11 @@ barclamp_pkg_cache_needs_update() {
     for pkg in ${BC_PKGS["$1"]} ${BC_BUILD_PKGS["$1"]}; do
 	[[ $pkg ]] || continue
 	for arch in "${PKG_ALLOWED_ARCHES[@]}"; do
-	    [[ ${pkgs["$pkg-$arch"]} || ${CD_POOL["$pkg-$arch"]} ]] \
-		&& continue 2
+	    [[ ${pkgs["$pkg-$arch"]} ]] && continue 2
+	    if [[ ${CD_POOL["$pkg-$arch"]} ]]; then
+		INSTALLED_PKGS["$pkg-$arch"]="true"
+		continue 2
+	    fi
 	    #debug "Could not find $pkg-$arch"
 	done
 	return 0
@@ -506,7 +513,7 @@ fi
 # Arrays holding the additional pkgs and gems populate Crowbar with.
 REPOS=()
 
-declare -A CD_POOL STAGED_POOL
+declare -A CD_POOL STAGED_POOL INSTALLED_PKGS
 
 # Some helper functions
 
@@ -759,7 +766,6 @@ fi
 		type shrink_iso >&/dev/null || \
 		    die "The build system does not know how to shrink $OS_TO_STAGE"
 		SHRINK_ISO=true
-		declare -A INSTALLED_PKGS
 		shift;;
 	    --generate-minimal-install)
 		type generate_minimal_install &>/dev/null || \
@@ -788,10 +794,10 @@ fi
     
     # The directory we will stage the build into.
     [[ $BUILD_DIR ]] || \
-	BUILD_DIR="$(mktemp -d "$CACHE_DIR/$OS_TOKEN/build-XXXXX")"
+	BUILD_DIR="$CACHE_DIR/$OS_TOKEN/build"
     # The directory that we will mount the OS .ISO on .
     [[ $IMAGE_DIR ]] || \
-	IMAGE_DIR="$CACHE_DIR/$OS_TOKEN/image-${BUILD_DIR##*-}"
+	IMAGE_DIR="$CACHE_DIR/$OS_TOKEN/image"
 
     # Directory where we will look for our package lists
     [[ $PACKAGE_LISTS ]] || PACKAGE_LISTS="$BUILD_DIR/extra/packages"
@@ -1055,7 +1061,6 @@ fi
     sudo mount -t tmpfs -o size=1K tmpfs "$IMAGE_DIR/isolinux"
 
     [[ $SHRINK_ISO && ! $GENERATE_MINIMAL_ISO ]] && shrink_iso
-
     # Make a file list and a link list.
     ( cd $BUILD_DIR
       find . -type f | \
