@@ -67,4 +67,7 @@
 [submodule "barclamps/dell-branding"]
     path = barclamps/dell-branding
     url = gitolite@10.9.244.31:barclamp-dell-branding
+[submodule "barclamps/overview"]
+    path = barclamps/overview
+    url = gitolite@10.9.244.31:barclamp-overview
 
