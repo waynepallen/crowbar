@@ -520,14 +520,14 @@ run_kvm() {
         -name "kvm-$vm_gen")
     if [[ $kvm_use_ahci = true ]]; then
         kvmargs+=(-device "ahci,id=ahci0,bus=pci.0,multifunction=on")
-        kvmargs+=(-drive "file=$smoketest_dir/$vmname.disk,if=none,format=raw,cache=$drive_cache,id=d
+        kvmargs+=(-drive "file=$smoketest_dir/$vmname.disk,if=none,format=raw,cache=$drive_cache,id=drive-ahci-0")
         kvmargs+=(-device "ide-drive,bus=ahci0.0,drive=drive-ahci-0,id=drive-0")
         local drive_idx=1
         for image in "$smoketest_dir/$vmname-"*".disk"; do
             [[ -f $image ]] || continue
             kvmargs+=(-device "ahci,id=ahci${drive_idx},bus=pci.0,multifunction=on")
             kvmargs+=(-drive "file=$image,if=none,cache=$drive_cache,id=drive-ahci-${drive_idx}")
-            kvmargs+=(-device "ide-drive,bus=ahci${drive_idx}.0,drive=drive-ahci-${drive_idx},id=driv
+            kvmargs+=(-device "ide-drive,bus=ahci${drive_idx}.0,drive=drive-ahci-${drive_idx},id=drive-${drive_idx}")
             drive_idx=$((drive_idx + 1))
             done
             unset drive_idx
